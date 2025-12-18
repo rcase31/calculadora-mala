@@ -1,0 +1,812 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Calculadora de Mala</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'%3E%3Crect x='8' y='14' width='32' height='24' rx='4' fill='%23f97316'/%3E%3Crect x='14' y='10' width='20' height='6' rx='2' fill='%23f59e0b'/%3E%3Crect x='12' y='20' width='6' height='12' rx='1.5' fill='%23fff7ed' opacity='0.85'/%3E%3Crect x='30' y='20' width='6' height='12' rx='1.5' fill='%23fff7ed' opacity='0.85'/%3E%3C/svg%3E">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600&family=Sora:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0f172a;
+      --panel: rgba(255, 255, 255, 0.07);
+      --panel-strong: rgba(255, 255, 255, 0.12);
+      --accent: #f97316;
+      --accent-2: #22d3ee;
+      --text: #e2e8f0;
+      --muted: #94a3b8;
+      --shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
+      --radius: 18px;
+    }
+    * {
+      box-sizing: border-box;
+    }
+    body {
+      margin: 0;
+      font-family: 'Space Grotesk', 'Sora', system-ui, -apple-system, sans-serif;
+      background: radial-gradient(circle at 20% 20%, rgba(34, 211, 238, 0.18), transparent 40%), radial-gradient(circle at 80% 0%, rgba(249, 115, 22, 0.16), transparent 35%), #0b1222;
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      padding: 36px 18px 72px;
+    }
+    .app {
+      width: min(980px, 100%);
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.03));
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 28px;
+      padding: 28px;
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(12px);
+      color: var(--text);
+    }
+    body.theme-praia {
+      --accent: #22d3ee;
+      --accent-2: #0ea5e9;
+      --panel: rgba(255, 255, 255, 0.14);
+      --panel-strong: rgba(255, 255, 255, 0.18);
+      --text: #e4f5ff;
+      --muted: #c5d7e3;
+      background: radial-gradient(circle at 20% 25%, rgba(34, 211, 238, 0.24), transparent 44%), radial-gradient(circle at 80% 0%, rgba(14, 165, 233, 0.2), transparent 48%), #0f2333;
+    }
+    body.theme-frio {
+      --accent: #38bdf8;
+      --accent-2: #a5b4fc;
+      background: radial-gradient(circle at 20% 20%, rgba(96, 165, 250, 0.24), transparent 40%), radial-gradient(circle at 80% 0%, rgba(79, 70, 229, 0.18), transparent 40%), #0b1326;
+    }
+    body.theme-cidade {
+      --accent: #f59e0b;
+      --accent-2: #60a5fa;
+      background: radial-gradient(circle at 15% 25%, rgba(96, 165, 250, 0.2), transparent 40%), radial-gradient(circle at 80% 5%, rgba(245, 158, 11, 0.2), transparent 40%), #0e141f;
+    }
+    header {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      align-items: center;
+      flex-wrap: wrap;
+      margin-bottom: 18px;
+    }
+    h1 {
+      margin: 0;
+      font-size: 28px;
+      letter-spacing: -0.02em;
+    }
+    .tagline {
+      margin: 4px 0 0;
+      color: var(--muted);
+      font-size: 15px;
+    }
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      background: rgba(255, 255, 255, 0.07);
+      padding: 10px 14px;
+      border-radius: 999px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      font-size: 14px;
+      color: var(--muted);
+    }
+    .pill strong {
+      color: var(--text);
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 16px;
+      margin-top: 12px;
+    }
+    .card {
+      background: var(--panel);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: var(--radius);
+      padding: 16px 18px;
+      position: relative;
+    }
+    .section {
+      margin-bottom: 10px;
+    }
+    .grid.duo {
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    }
+    .pair {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 10px;
+    }
+    .sub-label {
+      display: block;
+      font-size: 13px;
+      color: var(--muted);
+      margin-bottom: 4px;
+    }
+    label {
+      display: block;
+      font-weight: 600;
+      margin-bottom: 6px;
+      color: var(--text);
+      letter-spacing: -0.01em;
+    }
+    input, select, button {
+      width: 100%;
+      padding: 12px 12px;
+      border-radius: 12px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      background: rgba(15, 23, 42, 0.75);
+      color: var(--text);
+      font-size: 15px;
+      transition: border-color 0.2s ease, transform 0.1s ease;
+    }
+    input:focus, select:focus {
+      outline: none;
+      border-color: var(--accent-2);
+      box-shadow: 0 0 0 3px rgba(34, 211, 238, 0.2);
+    }
+    button {
+      cursor: pointer;
+      background: linear-gradient(120deg, var(--accent), #f59e0b);
+      color: #0b0b0b;
+      border: none;
+      font-weight: 700;
+      letter-spacing: 0.01em;
+    }
+    button:hover {
+      transform: translateY(-1px);
+    }
+    button:active {
+      transform: translateY(0);
+    }
+    .actions {
+      margin-top: 10px;
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .actions button.secondary {
+      background: transparent;
+      color: var(--text);
+      border: 1px dashed rgba(255, 255, 255, 0.25);
+    }
+    .result {
+      margin-top: 24px;
+      background: var(--panel);
+      border-radius: 22px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      padding: 18px;
+      position: relative;
+    }
+    .result h2 {
+      margin: 0 0 10px;
+      font-size: 20px;
+      letter-spacing: -0.01em;
+    }
+    .result-actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 12px;
+    }
+    .result-actions button {
+      width: auto;
+      padding: 10px 12px;
+      font-size: 14px;
+    }
+    .chips {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 16px;
+    }
+    .chip {
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      color: var(--muted);
+      padding: 8px 12px;
+      border-radius: 12px;
+      font-size: 13px;
+    }
+    .chip strong {
+      color: var(--text);
+    }
+    .list {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 10px;
+    }
+    .item {
+      background: var(--panel-strong);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 14px;
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .item .qty {
+      font-size: 24px;
+      font-weight: 700;
+      color: var(--accent-2);
+      letter-spacing: -0.01em;
+    }
+    .item .label {
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .item .row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .item input[type="checkbox"] {
+      width: auto;
+      height: 18px;
+      margin: 0;
+      accent-color: var(--accent);
+      cursor: pointer;
+    }
+    .item .icon {
+      font-size: 18px;
+    }
+    .item .note {
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.4;
+    }
+    .tag-picker {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .tag-picker button {
+      width: auto;
+      border-radius: 10px;
+      padding: 10px 14px;
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      background: rgba(255, 255, 255, 0.04);
+      color: var(--text);
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    .tag-picker button.active {
+      border-color: var(--accent-2);
+      background: rgba(34, 211, 238, 0.14);
+      color: #0b0b0b;
+    }
+    .tag-hint {
+      margin-top: 6px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+    .error-badge {
+      display: block;
+      width: 100%;
+      margin: 12px 0 2px;
+      padding: 12px 14px;
+      border-radius: 12px;
+      border: 1px solid rgba(248, 113, 113, 0.8);
+      background: linear-gradient(120deg, #ef4444, #b91c1c);
+      color: #fff;
+      font-weight: 700;
+      text-align: left;
+      cursor: default;
+      box-shadow: 0 10px 30px rgba(185, 28, 28, 0.3);
+    }
+    .error-badge[hidden] {
+      display: none;
+    }
+    .empty {
+      color: var(--muted);
+      padding: 12px 0;
+    }
+    .typeahead {
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: calc(100% - 4px);
+      background: #0b1222;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      box-shadow: var(--shadow);
+      border-radius: 14px;
+      display: none;
+      max-height: 240px;
+      overflow-y: auto;
+      z-index: 10;
+    }
+    .typeahead.open {
+      display: block;
+    }
+    .typeahead button {
+      width: 100%;
+      background: transparent;
+      border: none;
+      color: var(--text);
+      text-align: left;
+      padding: 12px 14px;
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+    }
+    .typeahead button:hover,
+    .typeahead button:focus {
+      background: rgba(255, 255, 255, 0.06);
+      outline: none;
+    }
+    .typeahead .type {
+      color: var(--muted);
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    @media (max-width: 640px) {
+      body { padding: 20px 14px 60px; }
+      h1 { font-size: 24px; }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <header>
+      <div>
+        <h1>Calculadora de Mala</h1>
+        <p class="tagline">Datas, horário de chegada/saída e destino viram um checklist de roupas.</p>
+      </div>
+    </header>
+
+    <form id="trip-form">
+      <div class="section">
+        <div class="grid duo">
+          <div class="card has-typeahead">
+            <label for="location">Destino</label>
+            <input id="location" name="location" type="text" placeholder="Ex.: Lisboa, serra, praia..." required>
+            <div class="typeahead" id="location-suggestions" aria-live="polite"></div>
+          </div>
+          <div class="card">
+            <label>Tipo de destino</label>
+            <div class="tag-picker" id="destination-tags" role="group" aria-label="Tipo de destino">
+              <button type="button" data-type="praia">Praia</button>
+              <button type="button" data-type="frio">Frio/serra</button>
+              <button type="button" data-type="cidade">Cidade</button>
+            </div>
+            <div class="tag-hint">Selecione um ou mais (ou deixe vazio para detecção automática).</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="grid">
+          <div class="card">
+            <label>Chegada</label>
+            <div class="pair">
+              <div>
+                <span class="sub-label">Data</span>
+                <input id="start" name="start" type="date" required>
+              </div>
+              <div>
+                <span class="sub-label">Período</span>
+                <select id="arrival-period" name="arrival-period" required>
+                  <option value="manha">Manhã (chego cedo)</option>
+                  <option value="tarde">Tarde</option>
+                  <option value="noite">Noite (chego tarde)</option>
+                </select>
+              </div>
+            </div>
+          </div>
+          <div class="card">
+            <label>Saída</label>
+            <div class="pair">
+              <div>
+                <span class="sub-label">Data</span>
+                <input id="end" name="end" type="date" required>
+              </div>
+              <div>
+                <span class="sub-label">Período</span>
+                <select id="departure-period" name="departure-period" required>
+                  <option value="manha">Manhã (saio cedo)</option>
+                  <option value="tarde">Tarde</option>
+                  <option value="noite">Noite (volto tarde)</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <button type="button" id="error-banner" class="error-badge" hidden role="alert"></button>
+      <div class="actions">
+        <button type="submit">Calcular mala</button>
+        <button type="button" class="secondary" id="fill-demo">Preencher exemplo</button>
+      </div>
+    </form>
+
+    <section id="result" class="result" aria-live="polite">
+      <h2>Sugestão de roupas</h2>
+      <div class="result-actions">
+        <button type="button" class="secondary" id="export-list">Copiar lista (Markdown)</button>
+        <span id="export-feedback" class="tag-hint" aria-live="polite"></span>
+      </div>
+      <div class="chips" id="chips"></div>
+      <div class="list" id="items"></div>
+      <div class="empty" id="empty">Preencha os dados acima para ver a sugestão.</div>
+    </section>
+  </main>
+
+  <script>
+    const form = document.getElementById('trip-form');
+    const chips = document.getElementById('chips');
+    const itemsGrid = document.getElementById('items');
+    const empty = document.getElementById('empty');
+    const demoBtn = document.getElementById('fill-demo');
+    const exportBtn = document.getElementById('export-list');
+    const exportFeedback = document.getElementById('export-feedback');
+    const destinationTags = document.getElementById('destination-tags');
+    const locationInput = document.getElementById('location');
+    const suggestionBox = document.getElementById('location-suggestions');
+    const errorBanner = document.getElementById('error-banner');
+    const selectedTypes = new Set();
+
+    const PERIOD_ARRIVAL = { manha: 0.95, tarde: 0.65, noite: 0.4 };
+    const PERIOD_DEPARTURE = { manha: 0.4, tarde: 0.7, noite: 0.95 };
+    const CITY_SUGGESTIONS = [
+      { name: 'Rio de Janeiro', types: ['praia', 'cidade'] },
+      { name: 'Florianópolis', types: ['praia'] },
+      { name: 'Fortaleza', types: ['praia'] },
+      { name: 'Salvador', types: ['praia'] },
+      { name: 'Recife', types: ['praia'] },
+      { name: 'Natal', types: ['praia'] },
+      { name: 'Maceió', types: ['praia'] },
+      { name: 'Porto de Galinhas', types: ['praia'] },
+      { name: 'Lisboa', types: ['cidade'] },
+      { name: 'Miami', types: ['praia', 'cidade'] },
+      { name: 'Barcelona', types: ['cidade'] },
+      { name: 'Paris', types: ['cidade'] },
+      { name: 'Roma', types: ['cidade'] },
+      { name: 'Nova York', types: ['cidade'] },
+      { name: 'São Paulo', types: ['cidade'] },
+      { name: 'Curitiba', types: ['cidade'] },
+      { name: 'Porto Alegre', types: ['cidade'] },
+      { name: 'Buenos Aires', types: ['cidade'] },
+      { name: 'Santiago', types: ['cidade'] },
+      { name: 'Bogotá', types: ['cidade'] },
+      { name: 'Londres', types: ['frio', 'cidade'] },
+      { name: 'Berlim', types: ['frio', 'cidade'] },
+      { name: 'Toronto', types: ['frio', 'cidade'] },
+      { name: 'Vancouver', types: ['frio', 'cidade'] },
+      { name: 'Bariloche', types: ['frio'] },
+      { name: 'Gramado', types: ['frio'] },
+      { name: 'Campos do Jordão', types: ['frio'] },
+      { name: 'Mendoza', types: ['frio', 'cidade'] },
+      { name: 'Tóquio', types: ['cidade'] },
+      { name: 'Dubai', types: ['cidade'] }
+    ];
+
+    function parseDate(value) {
+      if (!value) return null;
+      const [y, m, d] = value.split('-').map(Number);
+      return new Date(y, (m || 1) - 1, d || 1);
+    }
+
+    function detectClimate(location) {
+      const text = location.toLowerCase();
+      if (text.match(/praia|litoral|beach|verao|verão|costa/)) return 'quente';
+      if (text.match(/frio|neve|serra|montanha|patagonia|patagônia|alpes|canada|canadá|nordico|nórdico/)) return 'frio';
+      return 'ameno';
+    }
+
+    function renderSuggestions(query) {
+      suggestionBox.innerHTML = '';
+      suggestionBox.classList.remove('open');
+      const term = query.trim().toLowerCase();
+      if (term.length < 2) return;
+      const matches = CITY_SUGGESTIONS.filter(city => city.name.toLowerCase().includes(term)).slice(0, 7);
+      if (!matches.length) return;
+      matches.forEach(city => {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.dataset.types = city.types.join(',');
+        btn.dataset.name = city.name;
+        const typeLabel = city.types.join(' + ');
+        btn.innerHTML = `<span>${city.name}</span><span class="type">${typeLabel}</span>`;
+        suggestionBox.appendChild(btn);
+      });
+      suggestionBox.classList.add('open');
+    }
+
+    function getClimate(location, types) {
+      if (types && types.length) {
+        if (types.includes('frio')) return 'frio';
+        if (types.includes('praia')) return 'quente';
+        return 'ameno';
+      }
+      return detectClimate(location); // fallback automático
+    }
+
+    function calcDayUnits(start, end, arrivalPeriod, departurePeriod) {
+      const msPerDay = 1000 * 60 * 60 * 24;
+      const rawDays = Math.floor((end - start) / msPerDay) + 1;
+      const middleDays = Math.max(rawDays - 2, 0);
+      const arrivalShare = PERIOD_ARRIVAL[arrivalPeriod] ?? 0.7;
+      const departureShare = PERIOD_DEPARTURE[departurePeriod] ?? 0.7;
+      const dayUnits = Math.max(1, middleDays + arrivalShare + departureShare);
+      return { rawDays, dayUnits, arrivalShare, departureShare };
+    }
+
+    function buildList(dayUnits, climate, types) {
+      const hasType = (t) => Array.isArray(types) && types.includes(t);
+      const list = [];
+      const tops = Math.ceil(dayUnits + 0.5);
+      const underwear = Math.ceil(dayUnits) + 1;
+      const socks = underwear;
+      const prioritizeShorts = hasType('praia');
+      const pants = prioritizeShorts || climate === 'quente'
+        ? Math.max(1, Math.ceil(dayUnits / 3))
+        : Math.max(1, Math.ceil(dayUnits / 2.2));
+      const shorts = prioritizeShorts || climate === 'quente'
+        ? Math.max(1, Math.ceil(dayUnits / 1.2))
+        : Math.max(0, Math.floor(dayUnits / 3));
+      const layers = climate === 'frio' ? Math.max(1, Math.ceil(dayUnits / 1.8)) : 1;
+      const heavyCoat = climate === 'frio' ? 1 : 0;
+      const sleep = Math.max(1, Math.ceil(dayUnits / 3));
+      const outfits = Math.ceil(dayUnits / 1.2);
+
+      list.push({ label: 'Camisetas', qty: tops, note: '1 por dia + 1 extra para imprevistos.', icon: '👕' });
+      if (shorts > 0) list.push({ label: 'Bermudas', qty: shorts, note: 'Melhor para destino quente ou praia.', icon: '🩳' });
+      list.push({ label: 'Calças', qty: pants, note: 'Revezando cada 2 dias.', icon: '👖' });
+      if (layers > 0) list.push({ label: 'Camadas leves', qty: layers, note: climate === 'frio' ? 'Second layer: fleece, malha ou segunda pele.' : 'Cardigan ou jaqueta fina para variação de temperatura ou avião.', icon: '🧣' });
+      if (heavyCoat) list.push({ label: 'Casaco pesado', qty: heavyCoat, note: 'Para noites frias ou vento forte.', icon: '🧥' });
+      list.push({ label: 'Roupas íntimas', qty: underwear, note: '1 por dia + 1 extra. Inclua sutiãs/meias-calças se usar.', icon: '🩲' });
+      list.push({ label: 'Meias', qty: socks, note: '1 par por dia + 1 extra.', icon: '🧦' });
+      list.push({ label: 'Pijamas', qty: sleep, note: '1 para cada 3 noites.', icon: '😴' });
+      list.push({ label: 'Roupas reserva', qty: 1, note: 'Kit emergencial para atraso de voo ou chuva.', icon: '🆘' });
+      list.push({ label: 'Calçado principal', qty: 1, note: 'Tênis ou sapato confortável para caminhar.', icon: '👟' });
+      if (hasType('praia') || climate === 'quente') {
+        list.push({ label: 'Chinelo', qty: 1, note: 'Para praia ou hostel/banho.', icon: '🩴' });
+        const coverups = dayUnits <= 2 ? 1 : 2;
+        list.push({ label: 'Saída de banho', qty: coverups, note: '1 até 2 dias; 2 para viagens maiores.', icon: '🏖️' });
+      }
+      if (hasType('cidade')) {
+        list.push({ label: 'Tênis social', qty: 1, note: 'Calçado social para sair à noite.', icon: '👟' });
+      }
+      return list;
+    }
+
+    function estimateBag(list) {
+      let units = 0;
+      list.forEach(item => {
+        const name = (item.label || '').toLowerCase();
+        const qty = Number(item.qty) || 0;
+        let weight = 0.5;
+        if (name.includes('casaco pesado')) weight = 3.5;
+        else if (name.includes('calçado') || name.includes('tênis')) weight = 2.2;
+        else if (name.includes('camadas')) weight = 1.2;
+        else if (name.includes('calças')) weight = 1.3;
+        else if (name.includes('bermuda') || name.includes('short')) weight = 0.8;
+        else if (name.includes('pijamas')) weight = 0.9;
+        else if (name.includes('camisetas')) weight = 0.6;
+        else if (name.includes('roupas íntimas')) weight = 0.25;
+        else if (name.includes('meias')) weight = 0.15;
+        else if (name.includes('chinelo')) weight = 0.7;
+        else if (name.includes('saída de banho')) weight = 0.4;
+        units += weight * qty;
+      });
+      const thresholds = [
+        { max: 10, label: 'Mochila 20-30L', note: 'Viagem leve; cubes ajudam a caber.' },
+        { max: 18, label: 'Mala de cabine 35-45L', note: 'Cabe em voos low-cost se bem compactada.' },
+        { max: 28, label: 'Mala média 55-65L', note: 'Despachar ou carry-on premium.' },
+        { max: Infinity, label: 'Mala grande 75-90L', note: 'Necessário despachar; considere reduzir itens.' }
+      ];
+      const pick = thresholds.find(t => units <= t.max) || thresholds[thresholds.length - 1];
+      return { ...pick, score: units };
+    }
+
+    function render(data) {
+      const { location, rawDays, dayUnits, climate, destinationTypes, bag } = data;
+      chips.innerHTML = '';
+      itemsGrid.innerHTML = '';
+      if (!data.list.length) {
+        empty.textContent = 'Preencha os dados acima para ver a sugestão.';
+        exportBtn.disabled = true;
+        return;
+      }
+      empty.textContent = '';
+
+      const chipData = [
+        { label: 'Destino', value: location || '---' },
+        { label: 'Estadia', value: `${rawDays} dia${rawDays > 1 ? 's' : ''} (uso estimado ${dayUnits.toFixed(1)}d)` },
+        { label: 'Clima', value: climate === 'quente' ? 'quente' : climate === 'frio' ? 'frio' : 'ameno' },
+        { label: 'Tipo', value: destinationTypes && destinationTypes.length ? destinationTypes.join(' + ') : 'automático' },
+        { label: 'Mala sugerida', value: bag ? `${bag.label} (${bag.score.toFixed(1)} pts)` : '---' }
+      ];
+      chipData.forEach(ch => {
+        const div = document.createElement('div');
+        div.className = 'chip';
+        div.innerHTML = `<strong>${ch.label}:</strong> ${ch.value}`;
+        chips.appendChild(div);
+      });
+
+      data.list.forEach(entry => {
+        const card = document.createElement('div');
+        card.className = 'item';
+        card.innerHTML = `
+          <div class="row">
+            <input type="checkbox" aria-label="Marcar ${entry.label}">
+            <div class="qty">${entry.qty}x</div>
+            <div class="label"><span class="icon">${entry.icon || '•'}</span>${entry.label}</div>
+          </div>
+          <div class="note">${entry.note}</div>
+        `;
+        itemsGrid.appendChild(card);
+      });
+      exportBtn.disabled = false;
+    }
+
+    form.addEventListener('submit', (event) => {
+      event.preventDefault();
+      clearError();
+      const location = form.location.value.trim();
+      const start = parseDate(form.start.value);
+      const end = parseDate(form.end.value);
+      const arrivalPeriod = form['arrival-period'].value;
+      const departurePeriod = form['departure-period'].value;
+      const destinationTypes = Array.from(selectedTypes);
+
+      if (!location || !start || !end) {
+        resetResults('Complete destino e datas.');
+        showError('Complete destino e datas.');
+        return;
+      }
+      if (start > end) {
+        resetResults('A data de saída não pode ser antes da chegada.');
+        showError('Corrija: saída não pode ser antes da chegada.');
+        return;
+      }
+
+      const { rawDays, dayUnits } = calcDayUnits(start, end, arrivalPeriod, departurePeriod);
+      const climate = getClimate(location, destinationTypes);
+      const list = buildList(dayUnits, climate, destinationTypes);
+      applyTheme(destinationTypes, climate);
+
+      render({ location, rawDays, dayUnits, climate, destinationTypes, list });
+    });
+
+    locationInput.addEventListener('input', (event) => {
+      clearError();
+      resetResults('Preencha e calcule novamente com o novo destino.');
+      renderSuggestions(event.target.value);
+      applyTheme(Array.from(selectedTypes));
+    });
+
+    locationInput.addEventListener('keydown', (event) => {
+      if (event.key !== 'Tab') return;
+      const first = suggestionBox.querySelector('button');
+      if (!first) return;
+      applySuggestion(first.dataset.name, first.dataset.types);
+    });
+
+    locationInput.addEventListener('focus', (event) => {
+      if (event.target.value.trim().length >= 2) renderSuggestions(event.target.value);
+    });
+
+    locationInput.addEventListener('blur', () => {
+      setTimeout(() => suggestionBox.classList.remove('open'), 120);
+    });
+
+    suggestionBox.addEventListener('click', (event) => {
+      const btn = event.target.closest('button');
+      if (!btn) return;
+      applySuggestion(btn.dataset.name, btn.dataset.types);
+    });
+
+    function setTypes(types) {
+      selectedTypes.clear();
+      types.forEach(t => selectedTypes.add(t));
+      updateTagUI();
+      applyTheme(Array.from(selectedTypes));
+    }
+
+    function applySuggestion(name, typesStr) {
+      locationInput.value = name;
+      clearError();
+      resetResults('Preencha e calcule novamente com o novo destino.');
+      if (typesStr) {
+        const list = typesStr.split(',').filter(Boolean);
+        setTypes(list);
+      }
+      applyTheme(Array.from(selectedTypes));
+      suggestionBox.innerHTML = '';
+      suggestionBox.classList.remove('open');
+    }
+
+    function showError(message) {
+      errorBanner.textContent = message;
+      errorBanner.hidden = false;
+    }
+
+    function clearError() {
+      errorBanner.hidden = true;
+    }
+
+    function resetResults(message = 'Preencha os dados acima para ver a sugestão.') {
+      itemsGrid.innerHTML = '';
+      chips.innerHTML = '';
+      empty.textContent = message;
+      exportBtn.disabled = true;
+      exportFeedback.textContent = '';
+    }
+
+    function applyTheme(types, climate) {
+      const body = document.body;
+      const hasType = (t) => Array.isArray(types) && types.includes(t);
+      body.classList.remove('theme-praia', 'theme-frio', 'theme-cidade');
+      let theme = '';
+      if (hasType('frio')) theme = 'theme-frio';
+      else if (hasType('praia')) theme = 'theme-praia';
+      else if (hasType('cidade')) theme = 'theme-cidade';
+      else if (climate === 'frio') theme = 'theme-frio';
+      else if (climate === 'quente') theme = 'theme-praia';
+      if (theme) body.classList.add(theme);
+    }
+
+    demoBtn.addEventListener('click', () => {
+      const now = new Date();
+      const start = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 7);
+      const end = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 12);
+      form.location.value = 'Florianópolis - praia';
+      setTypes(['praia']);
+      form.start.valueAsDate = start;
+      form.end.valueAsDate = end;
+      form['arrival-period'].value = 'tarde';
+      form['departure-period'].value = 'manha';
+      clearError();
+      resetResults();
+      form.dispatchEvent(new Event('submit'));
+    });
+
+    function updateTagUI() {
+      destinationTags.querySelectorAll('button').forEach(btn => {
+        btn.classList.toggle('active', selectedTypes.has(btn.dataset.type));
+      });
+    }
+
+    destinationTags.addEventListener('click', (event) => {
+      const btn = event.target.closest('button');
+      if (!btn) return;
+      const type = btn.dataset.type;
+      if (selectedTypes.has(type)) selectedTypes.delete(type);
+      else selectedTypes.add(type);
+      setTypes(Array.from(selectedTypes));
+    });
+
+    function buildExportText() {
+      const lines = [];
+      const chipTexts = Array.from(chips.querySelectorAll('.chip')).map(chip => chip.textContent.trim()).join(' · ');
+      if (chipTexts) lines.push(`### Mala\n${chipTexts}\n`);
+      const entries = Array.from(itemsGrid.querySelectorAll('.item'));
+      entries.forEach(item => {
+        const label = item.querySelector('.label')?.textContent.trim() || '';
+        const qty = item.querySelector('.qty')?.textContent.trim() || '';
+        const note = item.querySelector('.note')?.textContent.trim() || '';
+        lines.push(`- [ ] ${label} — ${qty}${note ? ` (${note})` : ''}`);
+      });
+      return lines.join('\n');
+    }
+
+    exportBtn.addEventListener('click', async () => {
+      const text = buildExportText();
+      if (!text.trim()) return;
+      try {
+        await navigator.clipboard.writeText(text);
+        exportFeedback.textContent = 'Copiado! Cole no Notion/agenda.';
+      } catch (err) {
+        exportFeedback.textContent = 'Não consegui copiar. Selecione e copie manualmente.';
+      }
+      setTimeout(() => { exportFeedback.textContent = ''; }, 2500);
+    });
+  </script>
+</body>
+</html>
