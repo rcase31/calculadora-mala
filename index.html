@@ -293,6 +293,11 @@
       font-size: 13px;
       text-transform: capitalize;
     }
+    .calendar-day .year {
+      color: var(--muted);
+      font-size: 12px;
+      letter-spacing: 0.08em;
+    }
     .calendar-day .tag {
       font-size: 13px;
       color: var(--accent-2);
@@ -305,12 +310,12 @@
     .day-editor select,
     .day-editor input {
       width: 100%;
-      padding: 8px 10px;
-      border-radius: 8px;
+      padding: 6px 8px;
+      border-radius: 6px;
       border: 1px solid rgba(255, 255, 255, 0.12);
       background: rgba(255, 255, 255, 0.05);
       color: var(--text);
-      font-size: 14px;
+      font-size: 13px;
     }
     .day-editor .actions {
       display: grid;
@@ -318,8 +323,8 @@
       gap: 8px;
     }
     .day-editor button {
-      padding: 8px 10px;
-      font-size: 13px;
+      padding: 6px 8px;
+      font-size: 12px;
       background: rgba(255, 255, 255, 0.08);
       border: 1px solid rgba(255, 255, 255, 0.12);
       color: var(--text);
@@ -359,6 +364,95 @@
       display: flex;
       gap: 6px;
       flex-wrap: wrap;
+    }
+    .divider {
+      height: 1px;
+      background: rgba(255, 255, 255, 0.12);
+      margin: 6px 0;
+      border-radius: 999px;
+    }
+    .datepicker {
+      position: absolute;
+      min-width: 240px;
+      background: rgba(15, 23, 42, 0.95);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 12px;
+      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.35);
+      padding: 12px;
+      z-index: 20;
+      display: none;
+    }
+    .datepicker.open {
+      display: block;
+    }
+    .datepicker-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+      color: var(--text);
+      font-weight: 600;
+    }
+    .datepicker-header button {
+      width: auto;
+      padding: 6px 8px;
+      font-size: 12px;
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      color: var(--text);
+    }
+    .datepicker-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 6px;
+    }
+    .datepicker-day {
+      padding: 8px 0;
+      text-align: center;
+      border-radius: 10px;
+      border: 1px solid transparent;
+      background: rgba(255, 255, 255, 0.04);
+      color: var(--text);
+      cursor: pointer;
+      font-size: 13px;
+    }
+    .datepicker-day:hover {
+      border-color: var(--accent-2);
+      background: rgba(34, 211, 238, 0.14);
+    }
+    .datepicker-day.today {
+      border-color: var(--accent);
+    }
+    .datepicker-day.blank {
+      visibility: hidden;
+      cursor: default;
+      border: none;
+      background: transparent;
+    }
+    .datepicker-weekdays {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 6px;
+      margin-bottom: 6px;
+      color: var(--muted);
+      font-size: 12px;
+      text-align: center;
+    }
+    .event-praia {
+      background: rgba(34, 211, 238, 0.12);
+      border-color: rgba(34, 211, 238, 0.4);
+    }
+    .event-jantar {
+      background: rgba(244, 184, 108, 0.12);
+      border-color: rgba(244, 184, 108, 0.4);
+    }
+    .event-noite {
+      background: rgba(96, 165, 250, 0.12);
+      border-color: rgba(96, 165, 250, 0.4);
+    }
+    .event-default {
+      background: rgba(255, 255, 255, 0.08);
+      border-color: rgba(255, 255, 255, 0.12);
     }
     .event-pill {
       display: inline-flex;
@@ -540,7 +634,7 @@
             <div class="pair">
               <div>
                 <span class="sub-label">Data</span>
-                <input id="start" name="start" type="date" required>
+                <input id="start" name="start" type="text" inputmode="numeric" placeholder="dd/mm/aa" autocomplete="off" required>
               </div>
               <div>
                 <span class="sub-label">Período</span>
@@ -557,7 +651,7 @@
             <div class="pair">
               <div>
                 <span class="sub-label">Data</span>
-                <input id="end" name="end" type="date" required>
+                <input id="end" name="end" type="text" inputmode="numeric" placeholder="dd/mm/aa" autocomplete="off" required>
               </div>
               <div>
                 <span class="sub-label">Período</span>
@@ -592,6 +686,17 @@
       <div class="list" id="items"></div>
       <div class="empty" id="empty">Preencha os dados acima para ver a sugestão.</div>
     </section>
+    <div class="datepicker" id="date-picker" aria-hidden="true">
+      <div class="datepicker-header">
+        <button type="button" id="dp-prev">&lt;</button>
+        <div id="dp-month"></div>
+        <button type="button" id="dp-next">&gt;</button>
+      </div>
+      <div class="datepicker-weekdays">
+        <span>Dom</span><span>Seg</span><span>Ter</span><span>Qua</span><span>Qui</span><span>Sex</span><span>Sáb</span>
+      </div>
+      <div class="datepicker-grid" id="dp-grid"></div>
+    </div>
   </main>
 
   <script>
@@ -610,6 +715,12 @@
     const selectedTypes = new Set();
     const adjustments = {};
     const dayEvents = {};
+    const datePicker = document.getElementById('date-picker');
+    const dpGrid = document.getElementById('dp-grid');
+    const dpMonth = document.getElementById('dp-month');
+    const dpPrev = document.getElementById('dp-prev');
+    const dpNext = document.getElementById('dp-next');
+    const pickerState = { target: null, view: new Date() };
 
     const PERIOD_ARRIVAL = { manha: 0.95, tarde: 0.65, noite: 0.4 };
     const PERIOD_DEPARTURE = { manha: 0.4, tarde: 0.7, noite: 0.95 };
@@ -648,8 +759,96 @@
 
     function parseDate(value) {
       if (!value) return null;
-      const [y, m, d] = value.split('-').map(Number);
-      return new Date(y, (m || 1) - 1, d || 1);
+      const clean = value.trim();
+      const parts = clean.split(/[-/.]/);
+      if (parts.length !== 3) return null;
+      const [a, b, c] = parts;
+      const isDayFirst = clean.includes('/') || clean.includes('.') || (clean.includes('-') && a.length === 2);
+      if (isDayFirst) {
+        let yy = c;
+        if (yy.length === 2) yy = `20${yy}`;
+        const date = new Date(Number(yy), Number(b) - 1, Number(a));
+        return Number.isNaN(date.getTime()) ? null : date;
+      }
+      const date = new Date(Number(a), Number(b) - 1, Number(c));
+      return Number.isNaN(date.getTime()) ? null : date;
+    }
+
+    function formatDateShort(iso) {
+      if (!iso) return '';
+      const [y, m, d] = iso.split('-');
+      const yy = (y || '').slice(-2);
+      return `${d}/${m}/${yy}`;
+    }
+
+    function formatDateInput(date) {
+      const dd = String(date.getDate()).padStart(2, '0');
+      const mm = String(date.getMonth() + 1).padStart(2, '0');
+      const yy = String(date.getFullYear()).slice(-2);
+      return `${dd}/${mm}/${yy}`;
+    }
+
+    function normalizeTwoDigitDate(inputEl) {
+      if (!inputEl || !inputEl.value) return null;
+      const parsed = parseDate(inputEl.value);
+      if (!parsed) return null;
+      inputEl.value = formatDateInput(parsed);
+      return parsed;
+    }
+
+    function prefillEndDate() {
+      const start = normalizeTwoDigitDate(form.start) || parseDate(form.start.value);
+      if (!start) return;
+      const currentEnd = normalizeTwoDigitDate(form.end) || parseDate(form.end.value);
+      if (!currentEnd || currentEnd < start) {
+        const suggested = new Date(start);
+        suggested.setDate(suggested.getDate() + 1);
+        form.end.value = formatDateInput(suggested);
+      }
+    }
+
+    function renderDatePicker() {
+      const base = new Date(pickerState.view);
+      base.setDate(1);
+      const monthLabel = base.toLocaleString('pt-BR', { month: 'long', year: 'numeric' });
+      dpMonth.textContent = monthLabel;
+      dpGrid.innerHTML = '';
+      const firstDay = base.getDay();
+      const daysInMonth = new Date(base.getFullYear(), base.getMonth() + 1, 0).getDate();
+      for (let i = 0; i < firstDay; i++) {
+        const span = document.createElement('span');
+        span.className = 'datepicker-day blank';
+        dpGrid.appendChild(span);
+      }
+      for (let d = 1; d <= daysInMonth; d++) {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'datepicker-day';
+        btn.textContent = d;
+        const candidate = new Date(base.getFullYear(), base.getMonth(), d);
+        const today = new Date();
+        if (candidate.toDateString() === today.toDateString()) btn.classList.add('today');
+        btn.dataset.date = candidate.toISOString().slice(0, 10);
+        dpGrid.appendChild(btn);
+      }
+    }
+
+    function openDatePicker(input) {
+      pickerState.target = input;
+      const parsed = parseDate(input.value) || new Date();
+      pickerState.view = parsed;
+      renderDatePicker();
+      const rect = input.getBoundingClientRect();
+      datePicker.style.top = `${rect.bottom + window.scrollY + 6}px`;
+      datePicker.style.left = `${rect.left + window.scrollX}px`;
+      datePicker.classList.add('open');
+      datePicker.setAttribute('aria-hidden', 'false');
+    }
+
+    function closeDatePicker() {
+      pickerState.target = null;
+      datePicker.classList.remove('open');
+      datePicker.setAttribute('aria-hidden', 'true');
     }
 
     function detectClimate(location) {
@@ -720,8 +919,8 @@
       list.push({ label: 'Calças', qty: pants, note: 'Revezando cada 2 dias.', icon: '👖' });
       if (layers > 0) list.push({ label: 'Camadas leves', qty: layers, note: climate === 'frio' ? 'Second layer: fleece, malha ou segunda pele.' : 'Cardigan ou jaqueta fina para variação de temperatura ou avião.', icon: '🧣' });
       if (heavyCoat) list.push({ label: 'Casaco pesado', qty: heavyCoat, note: 'Para noites frias ou vento forte.', icon: '🧥' });
-      list.push({ label: 'Roupas íntimas', qty: underwear, note: '1 por dia + 1 extra. Inclua sutiãs/meias-calças se usar.', icon: '🩲' });
-      list.push({ label: 'Meias', qty: socks, note: '1 par por dia + 1 extra.', icon: '🧦' });
+      list.push({ label: 'Roupas íntimas', qty: underwear, note: '2 por dia + 1 extra. Inclua sutiãs/meias-calças se usar.', icon: '🩲' });
+      list.push({ label: 'Meias', qty: socks, note: '2 pares por dia + 1 extra.', icon: '🧦' });
       list.push({ label: 'Pijamas', qty: sleep, note: '1 para cada 3 noites.', icon: '😴' });
       list.push({ label: 'Roupas reserva', qty: 1, note: 'Kit emergencial para atraso de voo ou chuva.', icon: '🆘' });
       list.push({ label: 'Calçado principal', qty: 1, note: 'Tênis ou sapato confortável para caminhar.', icon: '👟' });
@@ -729,6 +928,7 @@
         list.push({ label: 'Chinelo', qty: 1, note: 'Para praia ou hostel/banho.', icon: '🩴' });
         const coverups = dayUnits <= 2 ? 1 : 2;
         list.push({ label: 'Saída de banho', qty: coverups, note: '1 até 2 dias; 2 para viagens maiores.', icon: '🏖️' });
+        list.push({ label: 'Toalha de praia', qty: 1, note: 'Leve ou de secagem rápida.', icon: '🧺' });
       }
       if (hasType('cidade')) {
         list.push({ label: 'Tênis social', qty: 1, note: 'Calçado social para sair à noite.', icon: '👟' });
@@ -747,6 +947,7 @@
         const month = cursor.toLocaleString('pt-BR', { month: 'short' });
         const weekday = cursor.toLocaleString('pt-BR', { weekday: 'short' });
         const iso = cursor.toISOString().slice(0, 10);
+        const yearShort = String(cursor.getFullYear()).slice(-2);
         let tag = '';
         if (isSame(cursor, start)) tag = `Chegada (${labelPeriod(arrivalPeriod)})`;
         if (isSame(cursor, end)) {
@@ -754,7 +955,7 @@
           tag = tag ? `${tag} · ${dep}` : dep;
         }
         if (!tag) tag = 'Estadia';
-        days.push({ day, month, weekday, tag, iso });
+        days.push({ day, month, weekday, tag, iso, yearShort });
         cursor.setDate(cursor.getDate() + 1);
       }
       return days;
@@ -849,7 +1050,12 @@
         const events = dayEvents[iso] || [];
         events.forEach((label, index) => {
           const pill = document.createElement('span');
-          pill.className = 'event-pill';
+          const lower = label.toLowerCase();
+          let colorClass = 'event-default';
+          if (lower.includes('praia')) colorClass = 'event-praia';
+          else if (lower.includes('jantar') || lower.includes('rest')) colorClass = 'event-jantar';
+          else if (lower.includes('noite') || lower.includes('balada')) colorClass = 'event-noite';
+          pill.className = `event-pill ${colorClass}`;
           pill.dataset.index = index;
           pill.innerHTML = `${label} <button type="button" data-action="remove-event" data-index="${index}">×</button>`;
           listEl.appendChild(pill);
@@ -892,9 +1098,16 @@
           card.className = 'calendar-day';
           card.dataset.iso = day.iso;
           card.innerHTML = `
-            <div class="top"><span>${day.day}</span><span class="weekday">${day.weekday}</span><span class="weekday">${day.month}</span></div>
+            <div class="top"><span>${day.day}</span><span class="weekday">${day.weekday}</span><span class="weekday">${day.month}</span><span class="year">'${day.yearShort}</span></div>
             <div class="tag">${day.tag}</div>
+            <div class="event-input">
+              <input type="text" placeholder="Adicionar evento (praia, jantar...)" class="day-event">
+              <button type="button" data-action="add-event">+ evento</button>
+            </div>
+            <div class="event-list" data-iso="${day.iso}"></div>
+            <div class="day-adjustments" data-iso="${day.iso}"></div>
             <div class="day-editor">
+              <div class="divider"></div>
               <select class="day-item">
                 ${optionHtml || '<option value="">Itens indisponíveis</option>'}
               </select>
@@ -903,12 +1116,6 @@
                 <button type="button" data-action="sub">- peça</button>
               </div>
             </div>
-            <div class="day-adjustments" data-iso="${day.iso}"></div>
-            <div class="event-input">
-              <input type="text" placeholder="Adicionar evento (praia, jantar...)" class="day-event">
-            <button type="button" data-action="add-event">+ evento</button>
-          </div>
-          <div class="event-list" data-iso="${day.iso}"></div>
           `;
           calendarGrid.appendChild(card);
         });
@@ -988,10 +1195,54 @@
       setTimeout(() => suggestionBox.classList.remove('open'), 120);
     });
 
+    ['start', 'end'].forEach(id => {
+      const input = form[id];
+      if (!input) return;
+      input.addEventListener('input', (event) => {
+        let v = event.target.value.replace(/[^0-9]/g, '').slice(0, 6);
+        if (v.length >= 3) v = `${v.slice(0, 2)}/${v.slice(2)}`;
+        if (v.length >= 6) v = `${v.slice(0, 5)}/${v.slice(5)}`;
+        event.target.value = v;
+      });
+      input.addEventListener('change', (event) => {
+        normalizeTwoDigitDate(event.target);
+        if (event.target.id === 'start') prefillEndDate();
+      });
+      input.addEventListener('focus', () => openDatePicker(input));
+      input.addEventListener('click', () => openDatePicker(input));
+    });
+
     suggestionBox.addEventListener('click', (event) => {
       const btn = event.target.closest('button');
       if (!btn) return;
       applySuggestion(btn.dataset.name, btn.dataset.types);
+    });
+
+    dpPrev.addEventListener('click', () => {
+      pickerState.view.setMonth(pickerState.view.getMonth() - 1);
+      renderDatePicker();
+    });
+
+    dpNext.addEventListener('click', () => {
+      pickerState.view.setMonth(pickerState.view.getMonth() + 1);
+      renderDatePicker();
+    });
+
+    dpGrid.addEventListener('click', (event) => {
+      const btn = event.target.closest('.datepicker-day');
+      if (!btn || btn.classList.contains('blank')) return;
+      const iso = btn.dataset.date;
+      if (!pickerState.target || !iso) return;
+      const date = new Date(iso);
+      pickerState.target.value = formatDateInput(date);
+      pickerState.target.dispatchEvent(new Event('change'));
+      closeDatePicker();
+    });
+
+    document.addEventListener('click', (event) => {
+      if (!datePicker.classList.contains('open')) return;
+      if (event.target.closest('.datepicker') || event.target.closest('#start') || event.target.closest('#end')) return;
+      closeDatePicker();
     });
 
     function setTypes(types) {
@@ -1051,8 +1302,8 @@
       const end = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 12);
       form.location.value = 'Florianópolis - praia';
       setTypes(['praia']);
-      form.start.valueAsDate = start;
-      form.end.valueAsDate = end;
+      form.start.value = formatDateInput(start);
+      form.end.value = formatDateInput(end);
       form['arrival-period'].value = 'tarde';
       form['departure-period'].value = 'manha';
       clearError();
@@ -1146,7 +1397,7 @@
           const tag = day.querySelector('.tag')?.textContent.trim() || '';
           const evts = dayEvents[iso] || [];
           if (!evts.length) return;
-          lines.push(`- ${iso} ${tag ? `(${tag})` : ''}: ${evts.join(', ')}`);
+          lines.push(`- ${formatDateShort(iso)} ${tag ? `(${tag})` : ''}: ${evts.join(', ')}`);
         });
       }
       return lines.join('\n');
