@@ -540,7 +540,7 @@
       const hasType = (t) => Array.isArray(types) && types.includes(t);
       const list = [];
       const tops = Math.ceil(dayUnits + 0.5);
-      const underwear = Math.ceil(dayUnits) + 1;
+      const underwear = Math.ceil(dayUnits) * 2;
       const socks = underwear;
       const prioritizeShorts = hasType('praia');
       const pants = prioritizeShorts || climate === 'quente'
