@@ -669,9 +669,10 @@
       const { rawDays, dayUnits } = calcDayUnits(start, end, arrivalPeriod, departurePeriod);
       const climate = getClimate(location, destinationTypes);
       const list = buildList(dayUnits, climate, destinationTypes);
+      const bag = estimateBag(list);
       applyTheme(destinationTypes, climate);
 
-      render({ location, rawDays, dayUnits, climate, destinationTypes, list });
+      render({ location, rawDays, dayUnits, climate, destinationTypes, list, bag });
     });
 
     locationInput.addEventListener('input', (event) => {
