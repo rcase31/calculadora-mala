@@ -258,6 +258,160 @@
       font-size: 13px;
       line-height: 1.4;
     }
+    .calendar-wrap {
+      margin: 12px 0 10px;
+    }
+    .calendar-title {
+      font-weight: 600;
+      margin-bottom: 8px;
+      color: var(--muted);
+      letter-spacing: -0.01em;
+    }
+    .calendar {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+      gap: 10px;
+    }
+    .calendar-day {
+      padding: 10px 12px;
+      border-radius: 12px;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      background: var(--panel-strong);
+      display: grid;
+      gap: 4px;
+    }
+    .calendar-day .top {
+      display: flex;
+      align-items: baseline;
+      gap: 6px;
+      font-weight: 700;
+      color: var(--text);
+      letter-spacing: -0.01em;
+    }
+    .calendar-day .weekday {
+      color: var(--muted);
+      font-size: 13px;
+      text-transform: capitalize;
+    }
+    .calendar-day .tag {
+      font-size: 13px;
+      color: var(--accent-2);
+    }
+    .day-editor {
+      margin-top: 6px;
+      display: grid;
+      gap: 6px;
+    }
+    .day-editor select,
+    .day-editor input {
+      width: 100%;
+      padding: 8px 10px;
+      border-radius: 8px;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      background: rgba(255, 255, 255, 0.05);
+      color: var(--text);
+      font-size: 14px;
+    }
+    .day-editor .actions {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+    }
+    .day-editor button {
+      padding: 8px 10px;
+      font-size: 13px;
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      color: var(--text);
+    }
+    .day-adjustments {
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 4px;
+      line-height: 1.4;
+    }
+    .event-input {
+      display: grid;
+      gap: 8px;
+      align-items: center;
+      margin-top: 6px;
+    }
+    .event-input input {
+      width: 100%;
+      padding: 8px 10px;
+      border-radius: 8px;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      background: rgba(255, 255, 255, 0.05);
+      color: var(--text);
+      font-size: 14px;
+    }
+    .event-input button {
+      padding: 8px 10px;
+      font-size: 13px;
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      color: var(--text);
+      cursor: pointer;
+      justify-self: start;
+    }
+    .event-list {
+      margin-top: 6px;
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+    .event-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 8px;
+      border-radius: 10px;
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      color: var(--text);
+      font-size: 12px;
+    }
+    .event-pill button {
+      border: none;
+      background: transparent;
+      color: inherit;
+      cursor: pointer;
+      font-size: 14px;
+      padding: 0 4px;
+    }
+    .day-editor {
+      margin-top: 6px;
+      display: grid;
+      gap: 6px;
+    }
+    .day-editor select,
+    .day-editor input {
+      width: 100%;
+      padding: 8px 10px;
+      border-radius: 8px;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      background: rgba(255, 255, 255, 0.05);
+      color: var(--text);
+      font-size: 14px;
+    }
+    .day-editor .actions {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+    }
+    .day-editor button {
+      padding: 8px 10px;
+      font-size: 13px;
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      color: var(--text);
+    }
+    .day-adjustments {
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 4px;
+      line-height: 1.4;
+    }
     .tag-picker {
       display: flex;
       gap: 10px;
@@ -431,6 +585,10 @@
         <span id="export-feedback" class="tag-hint" aria-live="polite"></span>
       </div>
       <div class="chips" id="chips"></div>
+      <div class="calendar-wrap">
+        <div class="calendar-title">Calendário da viagem</div>
+        <div class="calendar" id="calendar"></div>
+      </div>
       <div class="list" id="items"></div>
       <div class="empty" id="empty">Preencha os dados acima para ver a sugestão.</div>
     </section>
@@ -444,11 +602,14 @@
     const demoBtn = document.getElementById('fill-demo');
     const exportBtn = document.getElementById('export-list');
     const exportFeedback = document.getElementById('export-feedback');
+    const calendarGrid = document.getElementById('calendar');
     const destinationTags = document.getElementById('destination-tags');
     const locationInput = document.getElementById('location');
     const suggestionBox = document.getElementById('location-suggestions');
     const errorBanner = document.getElementById('error-banner');
     const selectedTypes = new Set();
+    const adjustments = {};
+    const dayEvents = {};
 
     const PERIOD_ARRIVAL = { manha: 0.95, tarde: 0.65, noite: 0.4 };
     const PERIOD_DEPARTURE = { manha: 0.4, tarde: 0.7, noite: 0.95 };
@@ -540,7 +701,7 @@
       const hasType = (t) => Array.isArray(types) && types.includes(t);
       const list = [];
       const tops = Math.ceil(dayUnits + 0.5);
-      const underwear = Math.ceil(dayUnits) * 2;
+      const underwear = Math.round(dayUnits * 2);
       const socks = underwear;
       const prioritizeShorts = hasType('praia');
       const pants = prioritizeShorts || climate === 'quente'
@@ -575,6 +736,30 @@
       return list;
     }
 
+    function buildCalendar(start, end, arrivalPeriod, departurePeriod) {
+      if (!start || !end || start > end) return [];
+      const days = [];
+      const cursor = new Date(start);
+      const isSame = (a, b) => a.toDateString() === b.toDateString();
+      const labelPeriod = (p) => p === 'manha' ? 'manhã' : p === 'tarde' ? 'tarde' : 'noite';
+      while (cursor <= end) {
+        const day = cursor.getDate();
+        const month = cursor.toLocaleString('pt-BR', { month: 'short' });
+        const weekday = cursor.toLocaleString('pt-BR', { weekday: 'short' });
+        const iso = cursor.toISOString().slice(0, 10);
+        let tag = '';
+        if (isSame(cursor, start)) tag = `Chegada (${labelPeriod(arrivalPeriod)})`;
+        if (isSame(cursor, end)) {
+          const dep = `Saída (${labelPeriod(departurePeriod)})`;
+          tag = tag ? `${tag} · ${dep}` : dep;
+        }
+        if (!tag) tag = 'Estadia';
+        days.push({ day, month, weekday, tag, iso });
+        cursor.setDate(cursor.getDate() + 1);
+      }
+      return days;
+    }
+
     function estimateBag(list) {
       let units = 0;
       list.forEach(item => {
@@ -604,16 +789,88 @@
       return { ...pick, score: units };
     }
 
+    function pruneAdjustments(calendar) {
+      const valid = new Set(calendar.map(day => day.iso));
+      Object.keys(adjustments).forEach(key => { if (!valid.has(key)) delete adjustments[key]; });
+    }
+
+    function pruneEvents(calendar) {
+      const valid = new Set(calendar.map(day => day.iso));
+      Object.keys(dayEvents).forEach(key => { if (!valid.has(key)) delete dayEvents[key]; });
+    }
+
+    function aggregateAdjustments() {
+      const agg = {};
+      Object.values(adjustments).forEach(map => {
+        Object.entries(map).forEach(([label, delta]) => {
+          if (!delta) return;
+          agg[label] = (agg[label] || 0) + delta;
+        });
+      });
+      return agg;
+    }
+
+    function applyAdjustments(list) {
+      const agg = aggregateAdjustments();
+      const map = new Map();
+      list.forEach(item => map.set(item.label, { ...item }));
+      Object.entries(agg).forEach(([label, delta]) => {
+        if (map.has(label)) {
+          const entry = map.get(label);
+          entry.qty = Math.max(0, (entry.qty || 0) + delta);
+        } else if (delta > 0) {
+          map.set(label, { label, qty: delta, note: 'Adicionado manualmente', icon: '•' });
+        }
+      });
+      return Array.from(map.values()).filter(entry => entry.qty > 0);
+    }
+
+    function refreshAdjustmentsUI() {
+      calendarGrid.querySelectorAll('.calendar-day').forEach(card => {
+        const iso = card.dataset.iso;
+        const box = card.querySelector('.day-adjustments');
+        const map = adjustments[iso];
+        if (!box) return;
+        if (!map || !Object.keys(map).length) {
+          box.textContent = '';
+          return;
+        }
+        const parts = Object.entries(map).map(([label, delta]) => `${delta > 0 ? '+' : ''}${delta} ${label}`);
+        box.textContent = `Ajustes: ${parts.join(', ')}`;
+      });
+    }
+
+    function refreshEventsUI() {
+      calendarGrid.querySelectorAll('.calendar-day').forEach(card => {
+        const iso = card.dataset.iso;
+        const listEl = card.querySelector('.event-list');
+        if (!listEl) return;
+        listEl.innerHTML = '';
+        const events = dayEvents[iso] || [];
+        events.forEach((label, index) => {
+          const pill = document.createElement('span');
+          pill.className = 'event-pill';
+          pill.dataset.index = index;
+          pill.innerHTML = `${label} <button type="button" data-action="remove-event" data-index="${index}">×</button>`;
+          listEl.appendChild(pill);
+        });
+      });
+    }
+
     function render(data) {
-      const { location, rawDays, dayUnits, climate, destinationTypes, bag } = data;
+      const { location, rawDays, dayUnits, climate, destinationTypes, bag, calendar } = data;
       chips.innerHTML = '';
       itemsGrid.innerHTML = '';
+      calendarGrid.innerHTML = '';
       if (!data.list.length) {
         empty.textContent = 'Preencha os dados acima para ver a sugestão.';
         exportBtn.disabled = true;
+        calendarGrid.innerHTML = '';
         return;
       }
       empty.textContent = '';
+
+      const optionHtml = (data.list || []).map(item => `<option value="${item.label}">${item.label}</option>`).join('');
 
       const chipData = [
         { label: 'Destino', value: location || '---' },
@@ -628,6 +885,34 @@
         div.innerHTML = `<strong>${ch.label}:</strong> ${ch.value}`;
         chips.appendChild(div);
       });
+
+      if (calendar && calendar.length) {
+        calendar.forEach(day => {
+          const card = document.createElement('div');
+          card.className = 'calendar-day';
+          card.dataset.iso = day.iso;
+          card.innerHTML = `
+            <div class="top"><span>${day.day}</span><span class="weekday">${day.weekday}</span><span class="weekday">${day.month}</span></div>
+            <div class="tag">${day.tag}</div>
+            <div class="day-editor">
+              <select class="day-item">
+                ${optionHtml || '<option value="">Itens indisponíveis</option>'}
+              </select>
+              <div class="actions">
+                <button type="button" data-action="add">+ peça</button>
+                <button type="button" data-action="sub">- peça</button>
+              </div>
+            </div>
+            <div class="day-adjustments" data-iso="${day.iso}"></div>
+            <div class="event-input">
+              <input type="text" placeholder="Adicionar evento (praia, jantar...)" class="day-event">
+            <button type="button" data-action="add-event">+ evento</button>
+          </div>
+          <div class="event-list" data-iso="${day.iso}"></div>
+          `;
+          calendarGrid.appendChild(card);
+        });
+      }
 
       data.list.forEach(entry => {
         const card = document.createElement('div');
@@ -668,11 +953,17 @@
 
       const { rawDays, dayUnits } = calcDayUnits(start, end, arrivalPeriod, departurePeriod);
       const climate = getClimate(location, destinationTypes);
-      const list = buildList(dayUnits, climate, destinationTypes);
+      const listBase = buildList(dayUnits, climate, destinationTypes);
+      const calendar = buildCalendar(start, end, arrivalPeriod, departurePeriod);
+      pruneAdjustments(calendar);
+      pruneEvents(calendar);
+      const list = applyAdjustments(listBase);
       const bag = estimateBag(list);
       applyTheme(destinationTypes, climate);
 
-      render({ location, rawDays, dayUnits, climate, destinationTypes, list, bag });
+      render({ location, rawDays, dayUnits, climate, destinationTypes, list, bag, calendar });
+      refreshAdjustmentsUI();
+      refreshEventsUI();
     });
 
     locationInput.addEventListener('input', (event) => {
@@ -738,6 +1029,7 @@
       empty.textContent = message;
       exportBtn.disabled = true;
       exportFeedback.textContent = '';
+      calendarGrid.innerHTML = '';
     }
 
     function applyTheme(types, climate) {
@@ -783,6 +1075,58 @@
       setTypes(Array.from(selectedTypes));
     });
 
+    function updateAdjustment(iso, label, delta) {
+      if (!iso || !label || !delta) return;
+      if (!adjustments[iso]) adjustments[iso] = {};
+      adjustments[iso][label] = (adjustments[iso][label] || 0) + delta;
+      if (adjustments[iso][label] === 0) delete adjustments[iso][label];
+      if (adjustments[iso] && !Object.keys(adjustments[iso]).length) delete adjustments[iso];
+    }
+
+    function addEvent(iso, text) {
+      const clean = (text || '').trim();
+      if (!iso || !clean) return;
+      if (!dayEvents[iso]) dayEvents[iso] = [];
+      dayEvents[iso].push(clean);
+    }
+
+    function removeEvent(iso, index) {
+      if (!iso || index === undefined) return;
+      const list = dayEvents[iso];
+      if (!Array.isArray(list)) return;
+      list.splice(index, 1);
+      if (!list.length) delete dayEvents[iso];
+    }
+
+    calendarGrid.addEventListener('click', (event) => {
+      const action = event.target.dataset.action;
+      if (!action) return;
+      const card = event.target.closest('.calendar-day');
+      if (!card) return;
+      if (action === 'add-event') {
+        const input = card.querySelector('.day-event');
+        const iso = card.dataset.iso;
+        addEvent(iso, input?.value);
+        if (input) input.value = '';
+        refreshEventsUI();
+        return;
+      }
+      if (action === 'remove-event') {
+        const iso = card.dataset.iso;
+        const idx = Number(event.target.dataset.index);
+        removeEvent(iso, idx);
+        refreshEventsUI();
+        return;
+      }
+      const select = card.querySelector('.day-item');
+      const label = select?.value;
+      const qty = 1;
+      const iso = card.dataset.iso;
+      const delta = action === 'add' ? qty : -qty;
+      updateAdjustment(iso, label, delta);
+      form.dispatchEvent(new Event('submit'));
+    });
+
     function buildExportText() {
       const lines = [];
       const chipTexts = Array.from(chips.querySelectorAll('.chip')).map(chip => chip.textContent.trim()).join(' · ');
@@ -794,6 +1138,17 @@
         const note = item.querySelector('.note')?.textContent.trim() || '';
         lines.push(`- [ ] ${label} — ${qty}${note ? ` (${note})` : ''}`);
       });
+      const days = Array.from(calendarGrid.querySelectorAll('.calendar-day'));
+      if (days.length) {
+        lines.push('\n### Eventos');
+        days.forEach(day => {
+          const iso = day.dataset.iso;
+          const tag = day.querySelector('.tag')?.textContent.trim() || '';
+          const evts = dayEvents[iso] || [];
+          if (!evts.length) return;
+          lines.push(`- ${iso} ${tag ? `(${tag})` : ''}: ${evts.join(', ')}`);
+        });
+      }
       return lines.join('\n');
     }
 
